@@ -11,6 +11,7 @@ type Props = {
   disabled: boolean;
   onTitleChange: (title: string) => void;
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
+  onToggleAll: () => void;
 };
 
 export const TodoAppHeader: React.FC<Props> = ({
@@ -21,6 +22,7 @@ export const TodoAppHeader: React.FC<Props> = ({
   disabled,
   onTitleChange,
   onSubmit,
+  onToggleAll,
 }) => (
   <header className="todoapp__header">
     {hasTodos && (
@@ -30,6 +32,7 @@ export const TodoAppHeader: React.FC<Props> = ({
           active: allTodosCompleted,
         })}
         data-cy="ToggleAllButton"
+        onClick={onToggleAll}
       />
     )}
 

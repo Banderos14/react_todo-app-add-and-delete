@@ -8,12 +8,14 @@ type Props = {
   todos: Todo[];
   loadingTodoIds: number[];
   onDelete: (todoId: number) => void;
+  onToggle: (todo: Todo) => void;
 };
 
 export const TodoList: React.FC<Props> = ({
   todos,
   loadingTodoIds,
   onDelete,
+  onToggle,
 }) => (
   <section className="todoapp__main" data-cy="TodoList">
     {todos.map(todo => (
@@ -28,7 +30,7 @@ export const TodoList: React.FC<Props> = ({
             type="checkbox"
             className="todo__status"
             checked={todo.completed}
-            readOnly
+            onChange={() => onToggle(todo)}
           />
         </label>
 

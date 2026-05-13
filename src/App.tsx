@@ -1,6 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
-import { createTodo, deleteTodo, getTodos, USER_ID } from './api/todos';
+import {
+  createTodo,
+  deleteTodo,
+  getTodos,
+  updateTodo,
+  USER_ID,
+} from './api/todos';
 import { ErrorNotification } from './components/ErrorNotification';
 import { TodoAppHeader } from './components/TodoAppHeader';
 import { TodoFooter } from './components/TodoFooter';
@@ -148,6 +154,58 @@ export const App: React.FC = () => {
       });
   };
 
+  const handleToggle = (todoToUpdate: Todo) => {
+    setErrorMessage('');
+    addLoadingTodoId(todoToUpdate.id);
+
+    updateTodo(todoToUpdate.id, { completed: !todoToUpdate.completed })
+      .then(updatedTodo => {
+        setTodos(currentTodos =>
+          currentTodos.map(todo =>
+            todo.id === updatedTodo.id ? updatedTodo : todo,
+          ),
+        );
+      })
+      .catch(() => {
+        setErrorMessage(ErrorMessage.Update);
+      })
+      .finally(() => {
+        removeLoadingTodoId(todoToUpdate.id);
+      });
+  };
+
+  const handleToggleAll = () => {
+    const completed = activeTodosCount > 0;
+    const todosToUpdate = todos.filter(todo => todo.completed !== completed);
+
+    setErrorMessage('');
+
+    todosToUpdate.forEach(todo => addLoadingTodoId(todo.id));
+
+    Promise.all(
+      todosToUpdate.map(todo =>
+        updateTodo(todo.id, { completed })
+          .then(updatedTodo => {
+            setTodos(currentTodos =>
+              currentTodos.map(currentTodo =>
+                currentTodo.id === updatedTodo.id ? updatedTodo : currentTodo,
+              ),
+            );
+
+            return true;
+          })
+          .catch(() => false)
+          .finally(() => {
+            removeLoadingTodoId(todo.id);
+          }),
+      ),
+    ).then(results => {
+      if (results.some(result => !result)) {
+        setErrorMessage(ErrorMessage.Update);
+      }
+    });
+  };
+
   const handleClearCompleted = () => {
     const completedTodos = todos.filter(todo => todo.completed);
 
@@ -196,6 +254,7 @@ export const App: React.FC = () => {
           disabled={isAdding}
           onTitleChange={setTitle}
           onSubmit={handleSubmit}
+          onToggleAll={handleToggleAll}
         />
 
         {(todos.length > 0 || tempTodo) && (
@@ -205,6 +264,7 @@ export const App: React.FC = () => {
               tempTodo ? [...loadingTodoIds, tempTodo.id] : loadingTodoIds
             }
             onDelete={handleDelete}
+            onToggle={handleToggle}
           />
         )}
 
